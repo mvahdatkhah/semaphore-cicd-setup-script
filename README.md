@@ -70,7 +70,7 @@ chmod +x setup_semaphore.sh
 ./setup_semaphore.sh your.domain.com
 ```
 
-🔸 Replace your.domain.com with your actual fully-qualified domain name (FQDN).
+🔸 Replace `your.domain.com` with your actual fully-qualified domain name (FQDN).
 🔸 Make sure your DNS is pointing to the server before running this script.
 
 ## 📜 What Each Step Does
