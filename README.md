@@ -1,4 +1,4 @@
-⚙️ Semaphore CI/CD Setup Script
+## ⚙️ Semaphore CI/CD Setup Script
 
 This Bash script installs `Semaphore UI` sets up Docker, Nginx, Certbot for HTTPS, and configures a reverse proxy — all in one go.
 🎯 Goal: Deploy Semaphore with secure HTTPS access using Docker and Nginx.
