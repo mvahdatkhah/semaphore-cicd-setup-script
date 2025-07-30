@@ -23,12 +23,10 @@ chmod +x setup_semaphore.sh
 
 1. 📍 Argument Check Checks if a domain name is passed as an argument. If not, exits with usage info.
 2. 🔄 System Update Updates all system packages to the latest versions.
-
 3. 🐳 Docker Installation
 - Installs prerequisites like `curl` and `gnupg`.
 - Adds Docker’s GPG key and repository.
 - Installs the Docker engine and Compose plugin.
-
 4. 🌐 Nginx Installation Installs Nginx to serve the Semaphore web UI.
 5. 🔐 Certbot Installation Installs Certbot to issue SSL certificates via Let's Encrypt.
 6. 📥 Certificate Request Requests an HTTPS certificate for your domain using Certbot and Nginx plugin.
