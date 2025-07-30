@@ -92,9 +92,9 @@ chmod +x setup_semaphore.sh
 
 Make sure you:
 
-- Replace the admin password with the output from password_gen.py
+- Replace the admin password with the output from `password_gen.py`
 - Backup and secure credentials properly
-- Restart services after editing docker-compose.yml
+- Restart services after editing `docker-compose.yml`
 
 ## ✅ After Installation
 
