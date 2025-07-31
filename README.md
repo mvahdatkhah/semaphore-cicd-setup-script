@@ -18,7 +18,8 @@ This Bash script installs `Semaphore UI` sets up Docker, Nginx, Certbot for HTTP
 chmod +x setup-semaphore.sh
 ./setup-semaphore.sh your.domain.com
 ```
-✅ Replace your.domain.com with your actual FQDN ✅ Ensure DNS is correctly pointed to your server before execution
+✅ Replace `your.domain.com` with your actual FQDN 
+✅ Ensure DNS is correctly pointed to your server before execution
 Generated credentials will be automatically injected and securely saved inside:
 
 ```bash
