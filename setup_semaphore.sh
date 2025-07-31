@@ -2,11 +2,11 @@
 
 #  Semaphore Setup Script with HTTPS and Nginx
 #  Author: Milad Vahdatkhah
-#  Date: "Wed Jul 30 08:27:50 AM UTC 2025"
+#  Date: "Thu Jul 31 10:23:00 AM UTC 2025"
 
 # --- Distro-Aware Setup Script ---
 
-#  Ensure FQDN is passed
+# Ensure FQDN is passed
 if [ -z "$1" ]; then
   echo "❌ Error: Missing domain name."
   echo "📌 Usage: $0 <your-fqdn>"
@@ -90,26 +90,9 @@ sudo certbot --nginx -d "$FQDN" || {
   exit 1
 }
 
-# --- Semaphore Setup ---
+# --- Launch Semaphore ---
 echo "🧱 Preparing Semaphore directory..."
 mkdir -p ~/semaphore && cd ~/semaphore
-
-# Write Docker Compose File
-cat <<EOF > docker-compose.yml
-version: '3'
-
-services:
-  semaphore:
-    image: semaphoreui/semaphore:v2.15.0
-    container_name: semaphore
-    ports:
-      - "3001:3000"
-    environment:
-      SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: "YourStrongPasswordHere"
-      SEMAPHORE_DB_DIALECT: bolt
-    restart: unless-stopped
-EOF
 
 echo "🚀 Launching Semaphore container..."
 docker-compose up -d
