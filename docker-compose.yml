@@ -1,5 +1,18 @@
 ---
+version: '3.8'
+
 services:
+  postgres:
+    image: postgres:14
+    container_name: semaphore-db
+    environment:
+      POSTGRES_USER: semaphore
+      POSTGRES_PASSWORD: semaphorepass
+      POSTGRES_DB: semaphore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   semaphore:
     image: semaphoreui/semaphore:v2.15.0
     container_name: semaphore
@@ -8,6 +21,16 @@ services:
     environment:
       SEMAPHORE_ADMIN: admin
       SEMAPHORE_ADMIN_PASSWORD: "YourStrongPasswordHere"
-      SEMAPHORE_DB_DIALECT: bolt
+      SEMAPHORE_DB_DIALECT: postgres
+      SEMAPHORE_DB_HOST: postgres
+      SEMAPHORE_DB_PORT: 5432
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: semaphorepass
+      SEMAPHORE_DB: semaphore
+    depends_on:
+      - postgres
     restart: unless-stopped
+
+volumes:
+  postgres_data:
 ...
