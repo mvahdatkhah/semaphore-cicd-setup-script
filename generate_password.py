@@ -21,4 +21,4 @@ print("\n🎁 Here come your secure passwords:\n")
 # 🧪 Generate passwords
 for i in range(count):
     password = ''.join(random.choice(chars) for _ in range(length))
-    print(f"🔑 [{i+1}] {password}")
+    print(password)
