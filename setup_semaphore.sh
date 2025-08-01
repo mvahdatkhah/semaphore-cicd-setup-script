@@ -90,16 +90,12 @@ mkdir -p ~/semaphore && cd ~/semaphore
 
 # --- Generate Passwords ---
 echo "🔐 Generating PostgreSQL and Semaphore passwords..."
-POSTGRES_PASSWORD=$(python3 ../generate_password.py <<< $'1\n20' | grep -oP '
+generate_password() {
+  python3 generate_password.py <<< $'1\n20' | tail -1
+}
 
-\[\d+\]
-
- \K.*')
-SEMAPHORE_PASSWORD=$(python3 ../generate_password.py <<< $'1\n20' | grep -oP '
-
-\[\d+\]
-
- \K.*')
+POSTGRES_PASSWORD=$(generate_password)
+SEMAPHORE_PASSWORD=$(generate_password)
 
 # --- Save Passwords Securely ---
 echo "$POSTGRES_PASSWORD" > ~/semaphore/postgres_password.txt
@@ -117,7 +113,7 @@ services:
     container_name: semaphore-db
     environment:
       POSTGRES_USER: semaphore
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
       POSTGRES_DB: semaphore
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -135,7 +131,7 @@ services:
       SEMAPHORE_DB_HOST: postgres
       SEMAPHORE_DB_PORT: 5432
       SEMAPHORE_DB_USER: semaphore
-      SEMAPHORE_DB_PASS: $POSTGRES_PASSWORD
+      SEMAPHORE_DB_PASS: "$POSTGRES_PASSWORD"
       SEMAPHORE_DB: semaphore
     depends_on:
       - postgres
