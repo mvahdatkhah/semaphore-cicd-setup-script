@@ -176,7 +176,7 @@ main() {
   install_docker
   install_nginx
   install_certbot
-  #request_ssl
+  request_ssl
   prepare_workspace
   create_compose_file
   launch_services
