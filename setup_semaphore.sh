@@ -87,8 +87,8 @@ prepare_workspace() {
   POSTGRES_PASSWORD=$(generate_password)
   SEMAPHORE_PASSWORD=$(generate_password)
   mkdir -p ~/semaphore
-  echo "$POSTGRES_PASSWORD" > ~/semaphore/postgres_password.txt
-  echo "$SEMAPHORE_PASSWORD" > ~/semaphore/semaphore_admin_password.txt
+  echo "'$POSTGRES_PASSWORD'" > ~/semaphore/postgres_password.txt
+  echo "'$SEMAPHORE_PASSWORD'" > ~/semaphore/semaphore_admin_password.txt
   chmod 600 ~/semaphore/*.txt
 }
 
@@ -101,7 +101,7 @@ services:
     container_name: semaphore-db
     environment:
       POSTGRES_USER: semaphore
-      POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
+      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       POSTGRES_DB: semaphore
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -114,12 +114,12 @@ services:
       - "3001:3000"
     environment:
       SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: "$SEMAPHORE_PASSWORD"
+      SEMAPHORE_ADMIN_PASSWORD: '$SEMAPHORE_PASSWORD'
       SEMAPHORE_DB_DIALECT: postgres
       SEMAPHORE_DB_HOST: postgres
       SEMAPHORE_DB_PORT: 5432
       SEMAPHORE_DB_USER: semaphore
-      SEMAPHORE_DB_PASS: "$POSTGRES_PASSWORD"
+      SEMAPHORE_DB_PASS: '$POSTGRES_PASSWORD'
       SEMAPHORE_DB: semaphore
     depends_on:
       - postgres
@@ -131,12 +131,12 @@ EOF
 }
 
 launch_services() {
-  echo "🧹 Removing old containers (volumes preserved)..."
-  docker-compose rm -f semaphore semaphore-db || echo "⚠️ No old containers to remove."
+  echo "🧹 Removing existing Semaphore containers..."
+  docker rm -f semaphore semaphore-db || echo "⚠️ Containers not found or already removed."
 
   echo "🚀 Launching Semaphore + PostgreSQL..."
-  docker-compose up -d || {
-    echo "❌ Failed to launch services."
+  docker compose up -d || {
+    echo "❌ Failed to launch services. Check docker-compose.yml."
     exit 1
   }
 }
