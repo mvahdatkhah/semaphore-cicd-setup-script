@@ -2,113 +2,98 @@
 
 # Semaphore + PostgreSQL Setup Script with HTTPS and Nginx
 # Author: Milad Vahdatkhah
-# Date: "Thu Jul 31 10:34:13 AM UTC 2025"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# --- Validate Input ---
-if [ -z "$1" ]; then
-  echo "❌ Error: Missing domain name."
-  echo "📌 Usage: $0 <your-fqdn>"
-  exit 1
-fi
-
-FQDN="$1"
-
-# --- Detect Linux Distribution ---
-echo "🔍 Detecting distribution..."
-source /etc/os-release
-
-if [[ "$ID" == "ubuntu" || "$ID_LIKE" == *"debian"* ]]; then
-  DISTRO="debian"
-elif [[ "$ID" == "rhel" || "$ID_LIKE" == *"rhel"* || "$ID" == "centos" ]]; then
-  DISTRO="redhat"
-else
-  echo "❌ Unsupported distro: $ID"
-  exit 1
-fi
-
-echo "✅ Detected: $DISTRO-based system"
-
-# --- Update System ---
-echo "📦 Updating system..."
-if [[ "$DISTRO" == "debian" ]]; then
-  sudo apt update && sudo apt upgrade -y
-elif [[ "$DISTRO" == "redhat" ]]; then
-  sudo yum update -y
-fi
-
-# --- Install Dependencies ---
-echo "🔧 Installing dependencies..."
-if [[ "$DISTRO" == "debian" ]]; then
-  sudo apt install -y apt-transport-https ca-certificates curl gnupg python3
-elif [[ "$DISTRO" == "redhat" ]]; then
-  sudo yum install -y yum-utils device-mapper-persistent-data lvm2 curl gnupg2 python3
-fi
-
-# --- Install Docker ---
-echo "🐳 Setting up Docker..."
-if [[ "$DISTRO" == "debian" ]]; then
-  sudo mkdir -p /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-    sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    $(. /etc/os-release && echo ${UBUNTU_CODENAME:-$VERSION_CODENAME}) stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  sudo apt update
-  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-elif [[ "$DISTRO" == "redhat" ]]; then
-  sudo yum install -y docker-ce docker-ce-cli containerd.io
-  sudo systemctl enable --now docker
-fi
-
-# --- Install Nginx ---
-echo "🌐 Installing Nginx..."
-if [[ "$DISTRO" == "debian" ]]; then
-  sudo apt install -y nginx
-elif [[ "$DISTRO" == "redhat" ]]; then
-  sudo yum install -y nginx
-  sudo systemctl enable --now nginx
-fi
-
-# --- Install Certbot ---
-echo "🔐 Installing Certbot..."
-if [[ "$DISTRO" == "debian" ]]; then
-  sudo apt install -y certbot python3-certbot-nginx
-elif [[ "$DISTRO" == "redhat" ]]; then
-  sudo yum install -y certbot python3-certbot-nginx
-fi
-
-# --- SSL Setup ---
-echo "🔏 Requesting SSL certificate for $FQDN..."
-sudo certbot --nginx -d "$FQDN" || {
-  echo "❗ Certificate generation failed! Check DNS or domain access."
-  exit 1
+validate_input() {
+  if [ -z "$1" ]; then
+    echo "❌ Error: Missing domain name."
+    echo "📌 Usage: $0 <your-fqdn>"
+    exit 1
+  fi
+  FQDN="$1"
 }
 
-# --- Setup Semaphore Directory ---
-echo "🧱 Preparing Semaphore workspace..."
-mkdir -p ~/semaphore && cd ~/semaphore
+detect_distribution() {
+  echo "🔍 Detecting distribution..."
+  source /etc/os-release
+  case "$ID" in
+    ubuntu|debian) DISTRO="debian" ;;
+    rhel|centos|fedora) DISTRO="redhat" ;;
+    *) echo "❌ Unsupported distro: $ID"; exit 1 ;;
+  esac
+  echo "✅ Detected: $DISTRO-based system"
+}
 
-# --- Generate Passwords ---
-echo "🔐 Generating PostgreSQL and Semaphore passwords..."
+update_system() {
+  echo "📦 Updating system..."
+  [[ "$DISTRO" == "debian" ]] && sudo apt update && sudo apt upgrade -y
+  [[ "$DISTRO" == "redhat" ]] && sudo yum update -y
+}
+
+install_dependencies() {
+  echo "🔧 Installing dependencies..."
+  if [[ "$DISTRO" == "debian" ]]; then
+    sudo apt install -y apt-transport-https ca-certificates curl gnupg python3
+  else
+    sudo yum install -y yum-utils device-mapper-persistent-data lvm2 curl gnupg2 python3
+  fi
+}
+
+install_docker() {
+  echo "🐳 Setting up Docker..."
+  if [[ "$DISTRO" == "debian" ]]; then
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo ${UBUNTU_CODENAME:-$VERSION_CODENAME}) stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  else
+    sudo yum install -y docker-ce docker-ce-cli containerd.io
+    sudo systemctl enable --now docker
+  fi
+}
+
+install_nginx() {
+  echo "🌐 Installing Nginx..."
+  [[ "$DISTRO" == "debian" ]] && sudo apt install -y nginx || sudo yum install -y nginx
+  sudo systemctl enable --now nginx
+}
+
+install_certbot() {
+  echo "🔐 Installing Certbot..."
+  [[ "$DISTRO" == "debian" ]] && sudo apt install -y certbot python3-certbot-nginx || \
+    sudo yum install -y certbot python3-certbot-nginx
+}
+
+request_ssl() {
+  echo "🔏 Requesting SSL certificate for $FQDN..."
+  sudo certbot --nginx -d "$FQDN" || {
+    echo "❗ Certificate generation failed! Check DNS or domain access."
+    exit 1
+  }
+}
+
 generate_password() {
   python3 "$SCRIPT_DIR/generate_password.py" <<< $'1\n20' | tail -1
 }
 
-POSTGRES_PASSWORD=$(generate_password)
-SEMAPHORE_PASSWORD=$(generate_password)
+prepare_workspace() {
+  echo "🧱 Preparing Semaphore workspace..."
+  cd "$SCRIPT_DIR"
+  POSTGRES_PASSWORD=$(generate_password)
+  SEMAPHORE_PASSWORD=$(generate_password)
+  mkdir -p ~/semaphore
+  echo "$POSTGRES_PASSWORD" > ~/semaphore/postgres_password.txt
+  echo "$SEMAPHORE_PASSWORD" > ~/semaphore/semaphore_admin_password.txt
+  chmod 600 ~/semaphore/*.txt
+}
 
-# --- Save Passwords Securely ---
-echo "$POSTGRES_PASSWORD" > ~/semaphore/postgres_password.txt
-echo "$SEMAPHORE_PASSWORD" > ~/semaphore/semaphore_admin_password.txt
-chmod 600 ~/semaphore/*.txt
-
-# --- Create Docker Compose File ---
-echo "📝 Writing docker-compose.yml with secure credentials..."
-cat <<EOF > docker-compose.yml
-version: '3.8'
-
+create_compose_file() {
+  echo "📝 Writing docker-compose.yml..."
+  cat <<EOF > docker-compose.yml
 services:
   postgres:
     image: postgres:14
@@ -142,14 +127,22 @@ services:
 volumes:
   postgres_data:
 EOF
+}
 
-# --- Launch Semaphore + Postgres ---
-echo "🚀 Launching Semaphore + PostgreSQL..."
-docker-compose up -d
+launch_services() {
+  echo "🧹 Removing old containers (volumes preserved)..."
+  docker compose rm -f semaphore semaphore-db || echo "⚠️ No old containers to remove."
 
-# --- Configure Nginx Proxy ---
-echo "🔧 Setting up Nginx reverse proxy..."
-cat <<EOF | sudo tee /etc/nginx/conf.d/semaphore.conf
+  echo "🚀 Launching Semaphore + PostgreSQL..."
+  docker compose up -d || {
+    echo "❌ Failed to launch services."
+    exit 1
+  }
+}
+
+configure_nginx() {
+  echo "🔧 Configuring Nginx reverse proxy..."
+  cat <<EOF | sudo tee /etc/nginx/conf.d/semaphore.conf
 server {
     listen 80;
     server_name $FQDN;
@@ -171,8 +164,25 @@ server {
 }
 EOF
 
-# --- Reload Nginx ---
-echo "🔄 Reloading Nginx..."
-sudo nginx -t && sudo systemctl reload nginx
+  echo "🔄 Reloading Nginx..."
+  sudo nginx -t && sudo systemctl reload nginx
+}
 
-echo "✅ Setup complete! Access Semaphore at: https://$FQDN"
+main() {
+  validate_input "$1"
+  detect_distribution
+  update_system
+  install_dependencies
+  install_docker
+  install_nginx
+  install_certbot
+  request_ssl
+  prepare_workspace
+  create_compose_file
+  launch_services
+  configure_nginx
+
+  echo "✅ Setup complete! Access Semaphore at: https://$FQDN"
+}
+
+main "$@"
