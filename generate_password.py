@@ -13,7 +13,8 @@ except ValueError:
     print("❗Oops! That wasn’t a number. Please enter valid digits.")
     exit(1)
 
-# 🔤 Allowed characters
+# 🔤 Allowed characters — exclude '$' to avoid shell interpolation issues
+excluded_chars = "'$"
 chars = string.ascii_letters + string.digits + string.punctuation
 
 print("\n🎁 Here come your secure passwords:\n")
