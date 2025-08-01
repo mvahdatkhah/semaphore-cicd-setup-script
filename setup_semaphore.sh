@@ -4,6 +4,8 @@
 # Author: Milad Vahdatkhah
 # Date: "Thu Jul 31 10:34:13 AM UTC 2025"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # --- Validate Input ---
 if [ -z "$1" ]; then
   echo "❌ Error: Missing domain name."
@@ -91,7 +93,7 @@ mkdir -p ~/semaphore && cd ~/semaphore
 # --- Generate Passwords ---
 echo "🔐 Generating PostgreSQL and Semaphore passwords..."
 generate_password() {
-  python3 generate_password.py <<< $'1\n20' | tail -1
+  python3 "$SCRIPT_DIR/generate_password.py" <<< $'1\n20' | tail -1
 }
 
 POSTGRES_PASSWORD=$(generate_password)
