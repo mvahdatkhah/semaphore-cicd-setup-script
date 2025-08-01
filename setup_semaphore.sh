@@ -147,7 +147,12 @@ launch_services() {
 }
 
 configure_nginx() {
-  echo "🔧 Configuring Nginx for HTTPS-only access..."
+  echo "🔧 Configuring Nginx reverse proxy with hardened HTTPS and hidden version headers..."
+
+  # 🔐 Hide Nginx version info in error pages and response headers
+  sudo sed -i '/http {/a \\tserver_tokens off;' /etc/nginx/nginx.conf
+
+  # 🌐 Create secure reverse proxy config for Semaphore
   cat <<EOF | sudo tee /etc/nginx/conf.d/semaphore.conf
 server {
     listen 80;
@@ -161,6 +166,7 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/$FQDN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$FQDN/privkey.pem;
+
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers 'HIGH:!aNULL:!MD5:!RC4';
     ssl_prefer_server_ciphers on;
@@ -194,10 +200,10 @@ main() {
   detect_distribution
   update_system
   install_dependencies
-  install_docker
+  #install_docker
   install_nginx
   install_certbot
-  request_ssl
+  #request_ssl
   prepare_workspace
   create_compose_file
   launch_services
