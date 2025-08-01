@@ -17,7 +17,7 @@ services:
       - "3001:3000"
     environment:
       SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: 'hbZU0U"$GZIJT)*P}PLL'
+      SEMAPHORE_ADMIN_PASSWORD: 'hbZU0U"GZIJT)*P}PLL'
       SEMAPHORE_DB_DIALECT: postgres
       SEMAPHORE_DB_HOST: postgres
       SEMAPHORE_DB_PORT: 5432
