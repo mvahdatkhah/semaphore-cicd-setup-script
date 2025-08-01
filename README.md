@@ -32,25 +32,35 @@ This Python script generates secure passwords interactively or via stdin:
 ```python
 #!/usr/bin/env python3
 
-import random
 import string
+import random
+import argparse
 
-print("🔐 Welcome to Milad’s Password Forge!")
+# Define excluded characters to avoid shell interpolation issues
+EXCLUDED_CHARS = "'$`\\\""
 
-try:
-    count = int(input("🧮 How many passwords would you like to create? "))
-    length = int(input("📏 Desired length of each password? "))
-except ValueError:
-    print("❗Oops! That wasn’t a number. Please enter valid digits.")
-    exit(1)
+def build_charset():
+    allowed_punctuation = ''.join(c for c in string.punctuation if c not in EXCLUDED_CHARS)
+    return string.ascii_letters + string.digits + allowed_punctuation
 
-chars = string.ascii_letters + string.digits + string.punctuation
+def generate_password(length):
+    chars = build_charset()
+    return ''.join(random.SystemRandom().choice(chars) for _ in range(length))
 
-print("\n🎁 Here come your secure passwords:\n")
+def main():
+    parser = argparse.ArgumentParser(description="Generate a secure password.")
+    parser.add_argument("-l", "--length", type=int, default=24, help="Length of the password (default: 24)")
+    parser.add_argument("-e", "--env-safe", action="store_true", help="Output in .env format (e.g. PASSWORD='yourpassword')")
+    args = parser.parse_args()
 
-for i in range(count):
-    password = ''.join(random.choice(chars) for _ in range(length))
-    print(f"🔑 [{i+1}] {password}")
+    password = generate_password(args.length)
+    if args.env_safe:
+        print(f"PASSWORD='{password}'")
+    else:
+        print(password)
+
+if __name__ == "__main__":
+    main()
 ```
 In automated mode, the Bash script runs this silently to extract strong credentials for both admin and database access.
 
