@@ -100,11 +100,16 @@ services:
     container_name: semaphore-db
     environment:
       POSTGRES_USER: semaphore
-      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
       POSTGRES_DB: semaphore
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semaphore"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   semaphore:
     image: semaphoreui/semaphore:v2.15.0
@@ -113,15 +118,16 @@ services:
       - "3001:3000"
     environment:
       SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: '$SEMAPHORE_PASSWORD'
+      SEMAPHORE_ADMIN_PASSWORD: '${SEMAPHORE_PASSWORD}'
       SEMAPHORE_DB_DIALECT: postgres
       SEMAPHORE_DB_HOST: postgres
       SEMAPHORE_DB_PORT: 5432
       SEMAPHORE_DB_USER: semaphore
-      SEMAPHORE_DB_PASS: '$POSTGRES_PASSWORD'
+      SEMAPHORE_DB_PASS: '${POSTGRES_PASSWORD}'
       SEMAPHORE_DB: semaphore
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
