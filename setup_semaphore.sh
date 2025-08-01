@@ -86,9 +86,8 @@ prepare_workspace() {
   cd "$SCRIPT_DIR"
   POSTGRES_PASSWORD=$(generate_password)
   SEMAPHORE_PASSWORD=$(generate_password)
-  mkdir -p ~/semaphore
-  echo "'$POSTGRES_PASSWORD'" > ~/semaphore/postgres_password.txt
-  echo "'$SEMAPHORE_PASSWORD'" > ~/semaphore/semaphore_admin_password.txt
+  echo "'$POSTGRES_PASSWORD'" > "$SCRIPT_DIR"/postgres_password.txt
+  echo "'$SEMAPHORE_PASSWORD'" > "$SCRIPT_DIR"/semaphore_admin_password.txt
   chmod 600 ~/semaphore/*.txt
 }
 
@@ -135,7 +134,7 @@ launch_services() {
   docker rm -f semaphore semaphore-db || echo "⚠️ Containers not found or already removed."
 
   echo "🚀 Launching Semaphore + PostgreSQL..."
-  docker compose up -d || {
+  docker-compose up -d || {
     echo "❌ Failed to launch services. Check docker-compose.yml."
     exit 1
   }
@@ -177,7 +176,7 @@ main() {
   install_docker
   install_nginx
   install_certbot
-  request_ssl
+  #request_ssl
   prepare_workspace
   create_compose_file
   launch_services
