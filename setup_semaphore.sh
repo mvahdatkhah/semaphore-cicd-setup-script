@@ -100,7 +100,7 @@ services:
     container_name: semaphore-db
     environment:
       POSTGRES_USER: semaphore
-      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       POSTGRES_DB: semaphore
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -118,12 +118,12 @@ services:
       - "3001:3000"
     environment:
       SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: '${SEMAPHORE_PASSWORD}'
+      SEMAPHORE_ADMIN_PASSWORD: "${SEMAPHORE_PASSWORD}"
       SEMAPHORE_DB_DIALECT: postgres
       SEMAPHORE_DB_HOST: postgres
       SEMAPHORE_DB_PORT: 5432
       SEMAPHORE_DB_USER: semaphore
-      SEMAPHORE_DB_PASS: '${POSTGRES_PASSWORD}'
+      SEMAPHORE_DB_PASS: "${POSTGRES_PASSWORD}"
       SEMAPHORE_DB: semaphore
     depends_on:
       postgres:
@@ -140,7 +140,7 @@ launch_services() {
   docker rm -f semaphore semaphore-db || echo "⚠️ Containers not found or already removed."
 
   echo "🚀 Launching Semaphore + PostgreSQL..."
-  docker-compose up -d || {
+  docker-compose down -v && docker-compose up -d || {
     echo "❌ Failed to launch services. Check docker-compose.yml."
     exit 1
   }
