@@ -2,6 +2,7 @@
 
 # Semaphore + PostgreSQL Setup Script with HTTPS and Nginx
 # Author: Milad Vahdatkhah
+# Date: Fri Aug  1 08:42:47 AM UTC 2025
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -131,10 +132,10 @@ EOF
 
 launch_services() {
   echo "🧹 Removing old containers (volumes preserved)..."
-  docker compose rm -f semaphore semaphore-db || echo "⚠️ No old containers to remove."
+  docker-compose rm -f semaphore semaphore-db || echo "⚠️ No old containers to remove."
 
   echo "🚀 Launching Semaphore + PostgreSQL..."
-  docker compose up -d || {
+  docker-compose up -d || {
     echo "❌ Failed to launch services."
     exit 1
   }
